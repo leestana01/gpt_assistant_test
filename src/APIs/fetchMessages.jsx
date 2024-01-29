@@ -1,57 +1,56 @@
 import axios from "axios";
 
-export default async function fetchMessages(threadId, runId, updateMessages) {
+export default async function fetchMessages(threadId, runId, setMessages) {
     try {
-        let response = await axios.get(
-            `https://api.openai.com/v1/threads/${threadId}/runs/${runId}/steps`,
-            {
-                headers: {
-                    'Authorization': `Bearer ${process.env.REACT_APP_API}`,
-                    'OpenAI-Beta': 'assistants=v1'
-                }
-            }
-        );
-
-        // 메시지 처리 및 화면 업데이트
-        const updateScreen = (data) => {
-            const completedMessages = data.filter(step => step.status === 'completed');
-            completedMessages.forEach(step => {
-            const botMessage = { text: step.text, isUser: false };
-            updateMessages(prevMessages => [...prevMessages, botMessage]);
-            });
-        };
-    
-        // 체크: data가 비어있거나, 첫 메시지의 상태가 in_progress인 경우
-        while (response.data.data.length === 0 || response.data.data[0].status === 'in_progress') {
-            await new Promise(resolve => setTimeout(resolve, 1000))
-            // 상태 확인을 위해 Run 정보를 가져옵니다.
-            const runStatusResponse = await axios.get(
-                `https://api.openai.com/v1/threads/${threadId}/runs/${runId}`,
+        while (true) {
+            // 현재 메시지 큐 상태 확인
+            const stepsResponse = await axios.get(
+                `https://api.openai.com/v1/threads/${threadId}/runs/${runId}/steps`,
                 {
                     headers: {
-                    'Authorization': `Bearer ${process.env.REACT_APP_API}`,
-                    'OpenAI-Beta': 'assistants=v1'
+                        'Authorization': `Bearer ${process.env.REACT_APP_API}`,
+                        'OpenAI-Beta': 'assistants=v1'
                     }
-                }
-            );
+                });
+            const steps = stepsResponse.data.data;
     
-            if (runStatusResponse.data.status === 'in_progress') {
-                // 다시 메시지를 가져옵니다.
-                response = await axios.get(
-                    `https://api.openai.com/v1/threads/${threadId}/runs/${runId}/steps`,
+            if (steps.length > 0 && steps[0].status === "completed") {
+                // 새 메시지 가져오기
+                const messagesResponse = await axios.get(
+                    `https://api.openai.com/v1/threads/${threadId}/messages`,
                     {
                         headers: {
                             'Authorization': `Bearer ${process.env.REACT_APP_API}`,
                             'OpenAI-Beta': 'assistants=v1'
                         }
+                    });
+                const newMessages = messagesResponse.data.data;
+    
+                if (newMessages.length > 0) {
+                    const latestMessage = newMessages[0].content.find(c => c.type === "text")?.text.value;
+                    if (latestMessage) {
+                        setMessages(prevMessages => [...prevMessages, { text: latestMessage, isUser: false }]);
                     }
-                );
-            } else {
-                break;
+                }
+    
+                // GPT 작동 종료 여부 확인
+                const runResponse = await axios.get(
+                    `https://api.openai.com/v1/threads/${threadId}/runs/${runId}`,
+                    {
+                        headers: {
+                            'Authorization': `Bearer ${process.env.REACT_APP_API}`,
+                            'OpenAI-Beta': 'assistants=v1'
+                        }
+                    });
+                if (runResponse.data.data[0].status === "completed") {
+                    break;
+                }
             }
+    
+            // 잠시 대기
+            await new Promise(resolve => setTimeout(resolve, 300));
         }
-        updateScreen(response.data.data);
     } catch (error) {
-    console.error('Error fetching messages:', error);
+        console.error('Error fetching messages:', error);
     }
 };
