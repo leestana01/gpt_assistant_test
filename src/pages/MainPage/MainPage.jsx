@@ -70,7 +70,7 @@ const App = () => {
           value={input}
           onChange={(e) => setInput(e.target.value)}
         />
-        <Button onClick={handleOnClick}>Send</Button>
+        <Button onClick={handleOnClick}>전송</Button>
       </InputContainer>
     </Container>
   );
