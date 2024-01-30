@@ -1,20 +1,15 @@
 import createThread from "./createThread";
+import addMessage from "./addMessage";
 import runThread from "./runThread";
 import fetchMessages from "./fetchMessages";
 
-export default async function sendMessage(input, messages, setInput, setMessages) {
-    if (!input) return;
-
-    const userMessage = { text: input, isUser: true };
-    setMessages(prevMessages => [...prevMessages, userMessage]);
-    setInput('');
-
+export default async function sendMessage(sendMessage, selectedFile, setMessages) {
     // 쓰레드 생성
     const threadId = await createThread();
     if (!threadId) return;
 
     // 메시지 업로드
-    await postMessage(threadId);
+    await addMessage(sendMessage, selectedFile, threadId);
 
     // 쓰레드 실행
     const runId = await runThread(threadId);
