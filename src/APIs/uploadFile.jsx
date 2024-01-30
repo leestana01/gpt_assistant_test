@@ -1,6 +1,6 @@
 import axios from "axios";
 
-export default async function uploadFile(threadId, file) {
+export default async function uploadFile(file) {
     try {
         const formData = new FormData();
         formData.append('purpose', 'assistants');
