@@ -10,7 +10,7 @@ export default async function runThread(threadId) {
         );
         return response.data.id;
     } catch (error) {
-        console.error('쓰레드 실행 실패:', error);
+        console.error('Failed to run Thread:', error);
         return null;
     }
 };

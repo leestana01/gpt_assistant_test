@@ -1,7 +1,7 @@
 import gpt from "./gpt";
 
 export default async function uploadFile(file) {
-    const maxRetries = 3; // 최대 재시도 횟수 설정
+    const maxRetries = 3; // Maximum Retries
     let currentRetry = 0;
 
     while (currentRetry < maxRetries) {
@@ -16,15 +16,15 @@ export default async function uploadFile(file) {
             );
             return response.data.id;
         } catch (error) {
-            console.error('오류 발생:', error);
+            console.error('Failed to upload file:', error);
             if (error.response && error.response.status === 500) {
                 currentRetry++;
-                console.error(`재시도 횟수 ${currentRetry}`);
+                console.error(`Retry counts: ${currentRetry}`);
             } else {
                 return null;
             }
         }
     }
-    // 재시도 계속 실패 시 null 반환
+    // Return null after maxRetires
     return null;
 };

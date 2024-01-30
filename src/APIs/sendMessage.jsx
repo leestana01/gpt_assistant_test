@@ -4,17 +4,18 @@ import runThread from "./runThread";
 import fetchMessages from "./fetchMessages";
 
 export default async function sendMessage(sendMessage, selectedFile, setMessages) {
-    // 쓰레드 생성
+    // Create Thread
     const threadId = await createThread();
     if (!threadId) return;
 
-    // 메시지 업로드
+    // Add Message in Thread
     await addMessage(sendMessage, selectedFile, threadId);
 
-    // 쓰레드 실행
+    // Run Thread
     const runId = await runThread(threadId);
     if (!runId) return;
 
-    // 메시지 불러오기 및 화면에 표시
+    // Load and Display Messages
+    // setMessages : Message State Handler
     await fetchMessages(threadId, runId, setMessages);
 };

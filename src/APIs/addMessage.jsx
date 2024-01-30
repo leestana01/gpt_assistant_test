@@ -19,7 +19,7 @@ export default async function addMessage(sendMessage, selectedFile, threadId) {
         );
         return response.data.id;
     } catch (error) {
-        console.error('메시지 추가 실패:', error);
+        console.error('Failed to add Message:', error);
         return null;
     }
 };
